@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asignacion de Costos de Servicios Logisticos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9; /* bg-slate-100 */
+        }
+        .bar-segment {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 500;
+            font-size: 0.75rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+            overflow: hidden;
+            white-space: nowrap;
+            border-right: 2px solid rgba(255,255,255,0.3);
+        }
+        .bar-segment:last-child {
+            border-right: none;
+        }
+        .dashboard-tab {
+            transition: all 0.2s ease-in-out;
+        }
+        .dashboard-tab.active {
+            background-color: #fb923c; /* orange-400 */
+            color: white;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <div class="flex h-screen bg-slate-100">
+        <!-- Sidebar / Dashboard -->
+        <aside class="w-64 bg-slate-800 text-white flex flex-col p-4">
+            <h1 class="text-xl font-bold text-center mb-8 border-b border-slate-700 pb-4">Menú</h1>
+            <nav class="flex flex-col space-y-2">
+                <button id="tab-colaboradores" class="dashboard-tab text-left w-full px-4 py-2.5 rounded-md hover:bg-slate-700">
+                    Colaboradores
+                </button>
+                <button id="tab-servicios" class="dashboard-tab text-left w-full px-4 py-2.5 rounded-md hover:bg-slate-700">
+                    Servicios Logísticos
+                </button>
+                <button id="tab-monetaria" class="dashboard-tab text-left w-full px-4 py-2.5 rounded-md hover:bg-slate-700">
+                    Asignacion Monetaria
+                </button>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-slate-100">
+                <div class="container mx-auto p-4 md:p-8">
+                    
+                    <!-- View: Colaboradores -->
+                    <div id="view-colaboradores">
+                        <header class="text-center mb-8">
+                            <h1 class="text-3xl md:text-4xl font-bold text-slate-900">Asignacion de costo de Servicios Logisticos</h1>
+                            <p class="text-lg text-slate-600 mt-2">Gerencia de Distribución</p>
+                        </header>
+
+                        <div class="bg-white p-4 rounded-lg shadow-md mb-8 border border-slate-200">
+                            <h2 class="text-xl font-semibold mb-4 text-center text-slate-700">Colaboradores</h2>
+                            <div id="selector-personal" class="flex flex-wrap justify-center gap-2 md:gap-3">
+                                <!-- Buttons will be generated here -->
+                            </div>
+                        </div>
+
+                        <div id="detalle-container" class="bg-white p-6 md:p-8 rounded-lg shadow-lg min-h-[400px] transition-all duration-300 border border-slate-200">
+                            <div id="detalle-personal">
+                                <!-- Details will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- View: Servicios Logísticos -->
+                    <div id="view-servicios" class="hidden">
+                         <header class="text-center mb-8">
+                            <h1 class="text-3xl md:text-4xl font-bold text-slate-900">Prorrateo General de Servicios Logísticos</h1>
+                            <p class="text-lg text-slate-600 mt-2">Costos Indirectos (Excluyendo Mano de Obra)</p>
+                        </header>
+                        <div id="servicios-container" class="bg-white p-6 md:p-8 rounded-lg shadow-lg min-h-[400px] transition-all duration-300 border border-slate-200">
+                           <!-- Content for Servicios Logisticos will be generated here -->
+                        </div>
+                    </div>
+
+                    <!-- View: Asignacion Monetaria -->
+                    <div id="view-monetaria" class="hidden">
+                         <header class="text-center mb-8">
+                            <h1 class="text-3xl md:text-4xl font-bold text-slate-900">Asignación Monetaria</h1>
+                             <p class="text-lg text-slate-600 mt-2">Distribución de Costos por Sucursal y Área</p>
+                        </header>
+                        <div id="monetaria-container" class="bg-white p-6 md:p-8 rounded-lg shadow-lg min-h-[400px] transition-all duration-300 border border-slate-200">
+                           <!-- Content for Asignacion Monetaria will be generated here -->
+                        </div>
+                    </div>
+
+                </div>
+                 <footer class="text-center p-4 text-slate-500">
+                    <p>&copy; 2024 - Presentación de Distribución de Costos</p>
+                </footer>
+            </main>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        
+        // --- DATA ZONE ---
+        const personal = [
+            {
+                id: 1,
+                nombre: "Carolina Espada",
+                cargo: "Jefa de SL",
+                totales: { "Almacenaje": 0.25, "Transporte": 0.25, "Control de Inventario": 0.25, "Log. de retornable": 0.25 },
+                detalles: {
+                    "Almacenaje": { "SCZ": 0.05, "CBBA": 0.05, "LA PAZ": 0.05, "TDD": 0.05, "SUCRE": 0.05 },
+                    "Transporte": { "SCZ": 0.05, "CBBA": 0.05, "LA PAZ": 0.05, "TDD": 0.05, "SUCRE": 0.05 },
+                    "Control de Inventario": { "SCZ": 0.05, "LPZ": 0.05, "CBBA": 0.05, "GPP": 0.05, "GPT": 0.05 },
+                    "Log. de retornable": { "SCZ": 0.05, "FAE": 0.05, "CBBA": 0.05, "LA PAZ": 0.05, "GPP": 0.05 }
+                }
+            },
+            {
+                id: 7,
+                nombre: "Victor Blades",
+                cargo: "Supervisor",
+                totales: { "Almacenaje": 0.25, "Transporte": 0.25, "Control de Inventario": 0.25, "Log. de retornable": 0.25 },
+                detalles: {
+                    "Almacenaje": { "SCZ": 0.05, "CBBA": 0.05, "LA PAZ": 0.05, "TDD": 0.05, "SUCRE": 0.05 },
+                    "Transporte": { "SCZ": 0.05, "CBBA": 0.05, "LA PAZ": 0.05, "TDD": 0.05, "SUCRE": 0.05 },
+                    "Control de Inventario": { "SCZ": 0.0833, "LA PAZ": 0.0833, "CBBA": 0.0833 },
+                    "Log. de retornable": { "SCZ": 0.0833, "CBBA": 0.0833, "LA PAZ": 0.0833 }
+                }
+            },
+            {
+                id: 2,
+                nombre: "Paula Justiniano",
+                cargo: "Auxiliar de Costos",
+                totales: { "Almacenaje": 0.5, "Transporte": 0.5 },
+                detalles: {
+                    "Almacenaje": { "SCZ": 0.1, "CBBA": 0.1, "LA PAZ": 0.1, "TDD": 0.1, "SUCRE": 0.1 },
+                    "Transporte": { "SCZ": 0.1, "CBBA": 0.1, "LA PAZ": 0.1, "TDD": 0.1, "SUCRE": 0.1 }
+                }
+            },
+            {
+                id: 3,
+                nombre: "Nicole Paz",
+                cargo: "Gestor de Inv",
+                totales: { "Control de Inventario": 0.5, "Logística de Retornable": 0.5 },
+                detalles: {
+                    "Control de Inventario": { "SCZ": 0.1, "LPZ": 0.1, "CBBA": 0.1, "GPP": 0.1, "GPT": 0.1 },
+                    "Logística de Retornable": { "SCZ": 0.1, "FAE": 0.1, "CBBA": 0.1, "LA PAZ": 0.1, "GPP": 0.1 }
+                }
+            },
+            {
+                id: 4,
+                nombre: "Sergio Perez",
+                cargo: "Auxiliar de SL",
+                totales: { "Almacenaje": 0.05, "Transporte": 0.95 },
+                detalles: {
+                    "Almacenaje": { "SCZ": 0.01, "CBBA": 0.01, "LA PAZ": 0.01, "TDD": 0.01, "SUCRE": 0.01 },
+                    "Transporte": { "SCZ": 0.19, "CBBA": 0.19, "LA PAZ": 0.19, "TDD": 0.19, "SUCRE": 0.19 }
+                }
+            },
+            {
+                id: 5,
+                nombre: "German Ferrier",
+                cargo: "Auxiliar de Retornable",
+                totales: { "Logística de Retornable": 1.0 },
+                detalles: {
+                    "Logística de Retornable": { "SCZ": 0.2, "FAE": 0.2, "CBBA": 0.2, "LA PAZ": 0.2, "GPP": 0.2 }
+                }
+            },
+            {
+                id: 6,
+                nombre: "Augusto Alvarez",
+                cargo: "Analista de SL",
+                totales: { "Almacenaje": 0.4, "Transporte": 0.4, "JEFATURA T1, TOLVAS, TALLER, CHALAS": 0.2 },
+                detalles: {
+                    "Almacenaje": { "SCZ": 0.08, "CBBA": 0.08, "LA PAZ": 0.08, "TDD": 0.08, "SUCRE": 0.08 },
+                    "Transporte": { "SCZ": 0.08, "CBBA": 0.08, "LA PAZ": 0.08, "TDD": 0.08, "SUCRE": 0.08 },
+                    "JEFATURA T1, TOLVAS, TALLER, CHALAS": { "T1": 0.05, "TALLER-MAESTRANZA": 0.05, "TOLVAS": 0.05, "CHALAS": 0.05 }
+                }
+            },
+            {
+                id: 8,
+                nombre: "Auxiliar de Inv",
+                cargo: "Auxiliar de Inv",
+                totales: { "Control de Inventario": 1.0 },
+                detalles: {
+                    "Control de Inventario": { "SCZ": 0.2, "LPZ": 0.2, "CBBA": 0.2, "GPP": 0.2, "GPT": 0.2 }
+                }
+            },
+            {
+                id: 9,
+                nombre: "Gestor de Modelo de servicio",
+                cargo: "Gestor de Modelo de servicio",
+                totales: { "Almacenaje": 0.05, "Transporte": 0.95 },
+                detalles: {
+                    "Almacenaje": { "SCZ": 0.01, "CBBA": 0.01, "LA PAZ": 0.01, "TDD": 0.01, "SUCRE": 0.01 },
+                    "Transporte": { "SCZ": 0.19, "CBBA": 0.19, "LA PAZ": 0.19, "TDD": 0.19, "SUCRE": 0.19 }
+                }
+            }
+        ];
+
+        const serviciosLogisticosData = {
+            totales: { "Almacenaje": 0.167, "Transporte": 0.367, "Control de Inventario": 0.222, "Log. de Retornable": 0.222, "JEFATURA T1, TOLVAS, TALLER, CHALAS": 0.022 },
+            detalles: {
+                "Almacenaje": { "SCZ": 0.033, "LA PAZ": 0.033, "CBBA": 0.033, "SUCRE": 0.033, "TDD": 0.033 },
+                "Transporte": { "SCZ": 0.073, "LA PAZ": 0.073, "CBBA": 0.073, "SUCRE": 0.073, "TDD": 0.073 },
+                "Control de Inventario": { "SCZ": 0.044, "LA PAZ": 0.044, "CBBA": 0.044, "GPP": 0.044, "GPT": 0.044 },
+                "Log. de Retornable": { "SCZ": 0.044, "LA PAZ": 0.044, "CBBA": 0.044, "GPP": 0.044, "GPT": 0.044 },
+                "JEFATURA T1, TOLVAS, TALLER, CHALAS": { "t1": 0.006, "TALLER": 0.006, "TOLVAS": 0.006, "CHALAS": 0.006 }
+            }
+        };
+
+        const asignacionMonetariaData = {
+            totales: { "SANTA CRUZ": 17098.56, "LA PAZ": 17098.56, "COCHABAMBA": 17098.56, "SUCRE": 9326.49, "TRINIDAD": 9326.49, "GPP": 7772.07, "GPT": 7772.07, "JEFATURA T1, TOLVAS, TALLER, CHALAS": 1943.02 },
+            detalles: {
+                "SANTA CRUZ": { "ALM": 2914.53, "TR": 6411.96, "INV": 3886.04, "LR": 3886.04 },
+                "LA PAZ": { "ALM": 2914.53, "TR": 6411.96, "INV": 3886.04, "LR": 3886.04 },
+                "COCHABAMBA": { "ALM": 2914.53, "TR": 6411.96, "INV": 3886.04, "LR": 3886.04 },
+                "SUCRE": { "ALM": 2914.53, "TR": 6411.96 },
+                "TRINIDAD": { "ALM": 2914.53, "TR": 6411.96 },
+                "JEFATURA T1, TOLVAS, TALLER, CHALAS": { "t1": 1943.02/4, "TALLER": 1943.02/4, "TOLVAS": 1943.02/4, "CHALAS": 1943.02/4 }
+            }
+        };
+
+        const colores = {
+            "Almacenaje": { bg: "bg-sky-600" },
+            "Transporte": { bg: "bg-emerald-600" },
+            "Control de Inventario": { bg: "bg-amber-600" },
+            "Logística de Retornable": { bg: "bg-indigo-600" },
+            "Log. de Retornable": { bg: "bg-indigo-600" },
+            "JEFATURA T1, TOLVAS, TALLER, CHALAS": {bg: "bg-slate-600"},
+            "Inventario": { bg: "bg-yellow-600" },
+            "Retornable": { bg: "bg-purple-600" },
+            "Otros": { bg: "bg-red-600" },
+            "SANTA CRUZ": { bg: "bg-red-500" },
+            "COCHABAMBA": { bg: "bg-orange-500" },
+            "SCZ": { bg: "bg-sky-500" },
+            "CBBA": { bg: "bg-emerald-500" },
+            "LA PAZ": { bg: "bg-amber-500" },
+            "LPZ": { bg: "bg-amber-500" },
+            "SUCRE": { bg: "bg-rose-500" },
+            "FAE": { bg: "bg-indigo-500" },
+            "TRINIDAD": { bg: "bg-cyan-500" },
+            "TDD": { bg: "bg-teal-500" },
+            "GPP": { bg: "bg-gray-400" },
+            "GPT": { bg: "bg-gray-500" },
+            "T1": { bg: "bg-cyan-500" },
+            "TALLER": { bg: "bg-lime-500" },
+            "TOLVAS": { bg: "bg-orange-500" },
+            "CHALAS": { bg: "bg-pink-500" },
+            "ALM": { bg: "bg-sky-600" },
+            "TR": { bg: "bg-emerald-600" },
+            "INV": { bg: "bg-amber-600" },
+            "LR": { bg: "bg-indigo-600" },
+        };
+        // --- END OF DATA ZONE ---
+
+        // --- TAB SWITCHING LOGIC ---
+        const tabColaboradores = document.getElementById('tab-colaboradores');
+        const tabServicios = document.getElementById('tab-servicios');
+        const tabMonetaria = document.getElementById('tab-monetaria');
+        const viewColaboradores = document.getElementById('view-colaboradores');
+        const viewServicios = document.getElementById('view-servicios');
+        const viewMonetaria = document.getElementById('view-monetaria');
+        const serviciosContainer = document.getElementById('servicios-container');
+        const monetariaContainer = document.getElementById('monetaria-container');
+
+        function switchTab(activeTab) {
+            viewColaboradores.classList.add('hidden');
+            viewServicios.classList.add('hidden');
+            viewMonetaria.classList.add('hidden');
+            tabColaboradores.classList.remove('active');
+            tabServicios.classList.remove('active');
+            tabMonetaria.classList.remove('active');
+
+            if (activeTab === 'colaboradores') {
+                viewColaboradores.classList.remove('hidden');
+                tabColaboradores.classList.add('active');
+            } else if (activeTab === 'servicios') {
+                viewServicios.classList.remove('hidden');
+                tabServicios.classList.add('active');
+                renderizarServiciosLogisticos();
+            } else if (activeTab === 'monetaria') {
+                viewMonetaria.classList.remove('hidden');
+                tabMonetaria.classList.add('active');
+                renderizarAsignacionMonetaria();
+            }
+        }
+
+        tabColaboradores.addEventListener('click', () => switchTab('colaboradores'));
+        tabServicios.addEventListener('click', () => switchTab('servicios'));
+        tabMonetaria.addEventListener('click', () => switchTab('monetaria'));
+
+        // --- SHARED LOGIC ---
+        function formatPercentage(pct) {
+            const percentage = pct * 100;
+            if (percentage % 1 === 0) {
+                return percentage.toFixed(0);
+            }
+            return percentage.toFixed(1).replace('.', ',');
+        }
+
+        function formatCurrency(num) {
+            const roundedNum = Math.round(num);
+            return `Bs ${new Intl.NumberFormat('de-DE').format(roundedNum)}`;
+        }
+
+        // --- COLLABORATORS VIEW LOGIC ---
+        const selectorContainer = document.getElementById('selector-personal');
+        const detalleContainer = document.getElementById('detalle-personal');
+
+        function renderizarSelectores() {
+            personal.forEach(p => {
+                const button = document.createElement('button');
+                button.textContent = p.nombre;
+                button.dataset.id = p.id;
+                button.className = `px-4 py-2 text-sm md:text-base font-medium rounded-md transition-colors duration-200 bg-slate-200 text-slate-700 hover:bg-slate-300`;
+                button.addEventListener('click', () => mostrarDetalle(p));
+                selectorContainer.appendChild(button);
+            });
+        }
+
+        function actualizarBotonesActivos(id) {
+            selectorContainer.querySelectorAll('button').forEach(btn => {
+                const isActive = btn.dataset.id == id;
+                btn.classList.toggle('bg-orange-500', isActive);
+                btn.classList.toggle('text-white', isActive);
+                btn.classList.toggle('shadow-sm', isActive);
+                btn.classList.toggle('bg-slate-200', !isActive);
+                btn.classList.toggle('text-slate-700', !isActive);
+            });
+        }
+        
+        function mostrarDetalle(persona) {
+            if (!persona) return;
+            
+            detalleContainer.style.opacity = 0;
+            setTimeout(() => {
+                let contentHTML = `
+                    <div class="text-center mb-6">
+                        <h2 class="text-2xl md:text-3xl font-bold text-slate-800">${persona.nombre}</h2>
+                        <p class="text-lg text-slate-500">${persona.cargo}</p>
+                    </div>
+                    <div class="space-y-6">
+                `;
+                contentHTML += buildDetailHTML(persona.totales, persona.detalles, 'percentage');
+                contentHTML += `</div>`;
+                detalleContainer.innerHTML = contentHTML;
+                detalleContainer.style.opacity = 1;
+            }, 300);
+            actualizarBotonesActivos(persona.id);
+        }
+
+        // --- SERVICIOS & MONETARIA VIEW LOGIC ---
+        function renderizarServiciosLogisticos() {
+             let contentHTML = `
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800">Servicios Logísticos</h2>
+                </div>
+                <div class="space-y-6">
+            `;
+            contentHTML += buildDetailHTML(serviciosLogisticosData.totales, serviciosLogisticosData.detalles, 'percentage');
+            contentHTML += `</div>`;
+            serviciosContainer.innerHTML = contentHTML;
+        }
+
+        function renderizarAsignacionMonetaria() {
+             let contentHTML = `
+                <div class="text-center mb-6 pb-6 border-b border-slate-200">
+                    <h2 class="text-xl font-semibold text-slate-700">SERVICIOS LOGISTICOS</h2>
+                    <p class="text-4xl font-bold text-slate-900 mt-2">${formatCurrency(87436)}</p>
+                    <p class="text-sm text-slate-500 mt-1">Promedio de la G-2024-2025</p>
+                </div>
+                <div class="space-y-6 mt-6">
+            `;
+            contentHTML += buildDetailHTML(asignacionMonetariaData.totales, asignacionMonetariaData.detalles, 'currency');
+            contentHTML += `</div>`;
+            monetariaContainer.innerHTML = contentHTML;
+        }
+        
+        // --- REUSABLE HTML BUILDER ---
+        function buildDetailHTML(totales, detalles, formatType) {
+            let html = '';
+            for (const area in totales) {
+                const totalValue = totales[area];
+                const detalleArea = detalles[area] || {};
+                const totalDetalle = Object.values(detalleArea).reduce((sum, val) => sum + val, 0);
+                const colorInfo = colores[area.toUpperCase()] || colores.Otros;
+                
+                const formattedTotal = formatType === 'currency' ? formatCurrency(totalValue) : `${formatPercentage(totalValue)}%`;
+
+                html += `
+                    <div>
+                        <div class="flex justify-between items-center mb-2 relative group">
+                            <h3 class="font-semibold text-slate-700">${area}</h3>
+                             ${(area === 'Almacenaje' || area === 'Transporte') ? `
+                                <div class="absolute bottom-full left-0 mb-2 w-max hidden group-hover:block bg-slate-800 text-white text-xs rounded py-1 px-3 z-10 transition-opacity duration-300">
+                                    Distribuido por linea de producto (kg G.2024-2025)
+                                </div>
+                            ` : ''}
+                            <span class="font-bold text-slate-800">${formattedTotal}</span>
+                        </div>
+                        <div class="relative flex w-full h-10 bg-slate-200 rounded-lg overflow-hidden shadow-inner">
+                `;
+
+                if (totalDetalle > 0) {
+                     for (const subItem in detalleArea) {
+                        const subItemValue = detalleArea[subItem];
+                        const width = (subItemValue / totalDetalle) * 100;
+                        const subItemColorInfo = colores[subItem.toUpperCase()] || colorInfo;
+                        const formattedSubItem = formatType === 'currency' ? formatCurrency(subItemValue) : `${formatPercentage(subItemValue)}%`;
+                        html += `
+                            <div class="bar-segment h-full ${subItemColorInfo.bg}" style="width: ${width}%">
+                                <span class="px-1 text-center">${subItem} (${formattedSubItem})</span>
+                            </div>
+                        `;
+                    }
+                } else {
+                     html += `<div class="bar-segment h-full ${colorInfo.bg}" style="width: 100%"></div>`;
+                }
+               
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+            return html;
+        }
+
+        function init() {
+            renderizarSelectores();
+            if (personal.length > 0) {
+                mostrarDetalle(personal[0]);
+            }
+            switchTab('colaboradores');
+        }
+
+        init();
+    });
+    </script>
+
+</body>
+</html>
