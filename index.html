@@ -440,13 +440,19 @@
                 `;
 
                 if (totalDetalle > 0) {
-                    let detalleItems = Object.entries(detalleArea).sort(([,a],[,b]) => b-a);
+                    // Do not sort items by value to maintain original order.
+                    let detalleItems = Object.entries(detalleArea);
+                    const numItems = detalleItems.length;
+                    // Calculate an equal width for each segment to prioritize legibility.
+                    const equalWidth = numItems > 0 ? 100 / numItems : 100;
 
                     for (const [subItem, subItemValue] of detalleItems) {
-                        const width = (subItemValue / totalDetalle) * 100;
+                        // Use the calculated equal width instead of a proportional one.
+                        const width = equalWidth;
                         const subItemColorInfo = colores[subItem.toUpperCase()] || colorInfo;
                         const formattedSubItem = formatType === 'currency' ? formatCurrency(subItemValue) : `${formatPercentage(subItemValue)}%`;
-                        const label = formatType === 'currency' ? `${subItem} (${formattedSubItem})` : `${subItem}`;
+                        // Always display the text and the numeric value for clarity.
+                        const label = `${subItem} (${formattedSubItem})`;
                         
                         html += `
                             <div class="bar-segment h-full ${subItemColorInfo.bg}" style="width: ${width}%" title="${subItem} (${formattedSubItem})">
